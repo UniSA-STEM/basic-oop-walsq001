@@ -12,8 +12,8 @@ import random
 # Variable and constant declarations
 
 crypto_token = 0
-trace_level = 0
-max_trace_level = 5
+
+
 """
 Hacker class to be imported into main program.
 Each instantiation will pick a random name,
@@ -30,7 +30,8 @@ class Hacker:
         self.__inventory = [
             (crypto_token + 1),
         ]
-        self.__trace_level = trace_level
+        self.__max_trace = 5
+        self.__trace_level = 0
         self.__has_rig = False
         self.__blocked = False
 
@@ -41,17 +42,15 @@ class Hacker:
 
     def __actions_blocked(self):
         self.__blocked = True
-        return self.__blocked
 
     def get_trace_track(self):
-        if self.__trace_level >= max_trace_level:
+        if self.__trace_level >= self.__max_trace:
             return self.__actions_blocked()
         else:
             return None
 
-    def set_risky_task(self):
-        self.__trace_level += 1
-        return self.__trace_level
+    def set_trace(self, trace_level):
+        self.__trace_level += trace_level
 
 player1 = Hacker()
 player2 = Hacker()
@@ -59,8 +58,8 @@ print(player1)
 player1.get_trace_track()
 index = 0
 while index < 6:
-    player1.set_risky_task()
+    player1.set_trace(1)
     player1.get_trace_track()
     index += 1
-print(player1)
+    print(player1)
 
