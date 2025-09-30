@@ -34,13 +34,11 @@ class Hacker:
         self._has_rig = False
         self._actions_blocked = False
 
-    def display_details(self):
-        print(f"Name: {self.name}")
-        print(f"Inventory: {self.inventory}")
-        print(f"Trace level: {self.trace_level}")
-        print(f"Has rig: {self._has_rig}")
+    def __str__(self):
+        return (f"Name: {self.name}\n"
+                f"Inventory: {self.inventory}\n"
+                f"Trace Level: {self.trace_level}")
 
 player1 = Hacker()
 player2 = Hacker()
-player1.display_details()
-player2.display_details()
+print(player1)
