@@ -52,8 +52,15 @@ class Hacker:
     def set_trace(self, trace_level):
         self.__trace_level += trace_level
 
+    def get_rig(self, parameter):
+        if parameter is not None:
+            self.__has_rig = True
+            self.__inventory[0] -= 1
+
+
 player1 = Hacker()
 player2 = Hacker()
+player1.get_rig(1)
 print(player1)
 player1.get_trace_track()
 index = 0
