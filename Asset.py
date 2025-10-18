@@ -14,8 +14,9 @@ class Asset:
         self.__encrypted = False
 
     def __str__(self):
+        enc = " [Encrypted]" if self.__encrypted else ""
         return (f"{self.__name} - {self.__description}"
-        f"{self.__quantity}")
+        f"{self.__quantity}{enc}")
 
     def get_encrypt(self):
         return self.__encrypted
@@ -31,8 +32,17 @@ class Asset:
 
     def set_quantity(self, value):
         if not isinstance(value, int):
-            raise TypeError("CryptoToken quantity must be an integer")
+            raise TypeError("Quantity must be an integer")
         self.__quantity = max(0, value)
+
+    def consume(self, amount=1):
+        if amount < 0:
+            raise ValueError("Quantity cannot be negative")
+        if self.__quantity >= amount:
+            self.__quantity -= amount
+        else:
+            self.__quantity = 0
+        return self.__quantity > 0
 
     quantity = property(get_quantity, set_quantity)
     encrypt = property(get_encrypt, set_encrypt)

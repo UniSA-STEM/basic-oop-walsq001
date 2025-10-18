@@ -6,3 +6,62 @@ ID: 110441860
 Username: walsq001
 This is my own work as defined by the University's Academic Misconduct Policy.
 """
+from Asset import Asset, DataSpike
+MAX_DMG = 2
+class Rig:
+    def __init__(self):
+        self.__name = "Rig"
+        self.__damage = 0
+        self.__broken = False
+        data_spike = DataSpike()
+        data_spike.quantity = 2
+        self.__storage: list[Asset] = [data_spike]
+        self.__upgrade = 0
+        self.__base_capacity = 3
+
+    def __str__(self):
+        storage_str = "\n".join(f"{str(item)}" for item in self.__storage)
+        return (f"Rig Name: {self.__name}\n"
+                f"Damage: {self.__damage}\n"
+                f"Broken: {self.__broken}\n"
+                f"Storage: {storage_str}\n"
+                f"Upgrade: {self.__upgrade}")
+
+    def broken(self):
+        if self.__damage >= MAX_DMG:
+            self.__broken = True
+            return self.__broken
+        return None
+
+    def get_capacity(self):
+        return self.__base_capacity
+
+    def add_to_storage(self, asset: Asset):
+        current_total = sum(a.quantity for a in self.__storage)
+        if current_total + asset.quantity <= self.get_capacity():
+            for stored in self.__storage:
+                if type(stored) is type(asset):
+                    stored.quantity += asset.quantity
+                    return True
+            self.__storage.append(asset)
+            return True
+        else:
+            print("Storage is full, cannot add asset!")
+            return False
+
+    def consume_from_storage(self, asset_type, amount=1):
+        for asset in self.__storage:
+            if isinstance(asset, asset_type):
+                still_has = asset.consume(amount)
+                if not still_has:
+                    self.__storage.remove(asset)
+                return True
+        return False
+
+    def get_damage(self):
+            return self.__damage, self.broken()
+
+    def set_damage(self, damage):
+        self.__damage = damage
+
+    dmg = property(get_damage, set_damage)
