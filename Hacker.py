@@ -6,7 +6,7 @@ ID: 110441860
 Username: walsq001
 This is my own work as defined by the University's Academic Misconduct Policy.
 """
-from Asset import CryptoToken
+from Asset import Asset, CryptoToken
 import random
 
 # Variable and constant declarations
@@ -26,9 +26,9 @@ class Hacker:
             "Jon 'Maddog' Hall", "Mary Ann Horton", "Audrey Tang",
              "Tim Cook", "Dr. Mary Gray"]
         )
-        self.__inventory = [
-            CryptoToken(),
-        ]
+        token = CryptoToken()
+        token.quantity = 2
+        self.__inventory: list[Asset] = [token]
         self.__trace_level = 0
         self.__has_rig = False
         self.__exposed = False
@@ -37,51 +37,48 @@ class Hacker:
         inventory_str = "\n".join(f"{str(item)}" for item in self.__inventory)
         return (f"Name: {self.__name}\n"
                 f"Inventory: {inventory_str}\n"
-                f"Trace Level: {self.__trace_level}"
+                f"Trace Level: {self.__trace_level}\n"
                 f"Exposed: {self.__exposed}")
 
     def __actions_blocked(self):
         self.__exposed = True
 
-    def get_trace_track(self):
+    def get_trace(self):
         if self.__trace_level >= MAX_TRACE:
             return self.__actions_blocked()
-        else:
-            return None
+        return self.__trace_level
 
-    def set_trace(self, trace_level):
-        self.__trace_level += trace_level
+    def set_trace(self, value):
+        self.__trace_level += value
 
-    def get_rig(self, parameter):
-        if parameter is not None:
-            self.__has_rig = True
+    def get_rig(self):
+        if not self.__has_rig:
             if self.consume_token():
-                return "You have acquired a rig!"
+                self.__has_rig = True
+                print("You have acquired a rig!")
+                return self.__has_rig
             else:
-                return "You have tried to acquire a rig, but no token was available."
+                return print("You have tried to acquire a rig, but no token was available.")
         else:
-            self.__has_rig = False
-            return f"You have not acquired a rig! :("
+            return print("You already have a rig!")
 
     def consume_token(self):
-        for i, asset in enumerate(self.__inventory):
+        for asset in self.__inventory:
             if isinstance(asset, CryptoToken) and asset.quantity > 0:
-                asset.quantity = -1
+                asset.quantity -= 1
                 if asset.quantity == 0:
-                    del self.__inventory[i]
+                    self.__inventory.remove(asset)
                 return True
         return False
 
+    trace = property(get_trace, set_trace)
 
-player1 = Hacker()
-player2 = Hacker()
-print(player1)
-player1.get_trace_track()
+p1 = Hacker()
+print(p1)
 index = 0
-while index < 6:
-    player1.set_trace(1)
-    print(player1.get_rig(1))
-    player1.get_trace_track()
+while index < MAX_TRACE:
+    p1.trace = 1
+    p1.get_rig()
+    p1.trace
+    print(p1)
     index += 1
-    print(player1)
-
