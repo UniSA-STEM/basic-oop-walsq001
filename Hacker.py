@@ -6,13 +6,12 @@ ID: 110441860
 Username: walsq001
 This is my own work as defined by the University's Academic Misconduct Policy.
 """
-
+from Asset import CryptoToken
 import random
 
 # Variable and constant declarations
 
-crypto_token = 0
-
+MAX_TRACE = 5
 
 """
 Hacker class to be imported into main program.
@@ -28,23 +27,24 @@ class Hacker:
              "Tim Cook", "Dr. Mary Gray"]
         )
         self.__inventory = [
-            (crypto_token + 1),
+            CryptoToken(),
         ]
-        self.__max_trace = 5
         self.__trace_level = 0
         self.__has_rig = False
-        self.__blocked = False
+        self.__exposed = False
 
     def __str__(self):
+        inventory_str = "\n".join(f"{str(item)}" for item in self.__inventory)
         return (f"Name: {self.__name}\n"
-                f"Inventory: {self.__inventory}\n"
-                f"Trace Level: {self.__trace_level}")
+                f"Inventory: {inventory_str}\n"
+                f"Trace Level: {self.__trace_level}"
+                f"Exposed: {self.__exposed}")
 
     def __actions_blocked(self):
-        self.__blocked = True
+        self.__exposed = True
 
     def get_trace_track(self):
-        if self.__trace_level >= self.__max_trace:
+        if self.__trace_level >= MAX_TRACE:
             return self.__actions_blocked()
         else:
             return None
@@ -55,17 +55,32 @@ class Hacker:
     def get_rig(self, parameter):
         if parameter is not None:
             self.__has_rig = True
-            self.__inventory[0] -= 1
+            if self.consume_token():
+                return "You have acquired a rig!"
+            else:
+                return "You have tried to acquire a rig, but no token was available."
+        else:
+            self.__has_rig = False
+            return f"You have not acquired a rig! :("
+
+    def consume_token(self):
+        for i, asset in enumerate(self.__inventory):
+            if isinstance(asset, CryptoToken) and asset.quantity > 0:
+                asset.quantity = -1
+                if asset.quantity == 0:
+                    del self.__inventory[i]
+                return True
+        return False
 
 
 player1 = Hacker()
 player2 = Hacker()
-player1.get_rig(1)
 print(player1)
 player1.get_trace_track()
 index = 0
 while index < 6:
     player1.set_trace(1)
+    print(player1.get_rig(1))
     player1.get_trace_track()
     index += 1
     print(player1)
