@@ -6,8 +6,11 @@ ID: 110441860
 Username: walsq001
 This is my own work as defined by the University's Academic Misconduct Policy.
 """
-from Asset import Asset, DataSpike
+import random
+from Asset import Asset, DataSpike, CryptoToken, RemovableDrive, SecurityChip, HardwarePatch
+
 MAX_DMG = 2
+
 class Rig:
     def __init__(self):
         self.__name = "Rig"
@@ -65,6 +68,18 @@ class Rig:
     def get_storage(self):
         return self.__storage
 
+    def generate_asset(self):
+        asset_classes = [HardwarePatch, SecurityChip, DataSpike, RemovableDrive, CryptoToken]
+        chosen_asset = random.choice(asset_classes)
+
+        new_asset = chosen_asset()
+
+        if self.add_to_storage(new_asset):
+            print(f"Added {new_asset} to storage!")
+            return new_asset
+        else:
+            print(f"Failed to add {new_asset} to storage! Storage full!")
+            return None
 
     dmg = property(get_damage, set_damage)
     capacity = property(get_capacity)

@@ -55,7 +55,7 @@ class Hacker:
                     source.remove(asset)
 
                 if capacity is not None:
-                    current_total = sum(a.quantity for a in dest)
+                    current_total = self.rig.get_capacity
                     if current_total + amount > capacity:
                         print("Destination storage full!")
                         return False
@@ -106,27 +106,22 @@ class Hacker:
                 return True
         return False
 
-    def move_to_rig(self, asset_type, amount=1):
+    def store_asset(self, asset_type, amount=1):
         if not self.rig:
             print("No rig available!")
             return False
         return self._transfer(self.__inventory, self.rig.storage, asset_type, amount, capacity=self.rig.capacity)
 
-        print(f"No {asset_type.__name__} in inventory!")
-        return False
-
-    def move_from_rig(self, asset_type, amount=1):
+    def get_asset(self, asset_type, amount=1):
         if not self.rig:
             print("No rig available!")
             return False
-        return self._transfer(self.rig._Rig__storage, self.__inventory, asset_type, amount)
+        return self._transfer(self.rig.storage, self.__inventory, asset_type, amount)
 
     trace = property(get_trace, set_trace)
 p1 = Hacker()
 rig = p1.get_rig()
 while p1.trace <= MAX_TRACE:
     print(p1)
-    p1.move_from_rig(DataSpike, 2)
-    print(p1)
-    p1.move_to_rig(DataSpike, 1)
+    p1.rig.generate_asset()
     p1.trace = 1
