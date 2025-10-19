@@ -49,6 +49,9 @@ class Hacker:
                 f"Trace Level: {self.__trace_level}\n"
                 f"{rig_str}")
 
+    def get_name(self):
+        return self.__name
+    name = property(get_name)
     # Trace methods
     def get_trace(self):
         return self.__trace_level
@@ -188,8 +191,6 @@ class Hacker:
             try: self.rig.storage.remove(chip)
             except: pass
 
-
-
     def _find_security_chip(self):
         chip = next((a for a in self.__inventory
                      if isinstance(a, SecurityChip) and
@@ -227,16 +228,49 @@ class Hacker:
 
         return self.rig.repair()
 
+    def launch_data_spike(self, target, hits=1):
+        if not self.rig:
+            print("No rig available to launch a data spike!")
+            return False
+        if not hasattr(target, "rig") or not target.rig:
+            print("Target has no rig!")
+            return False
+
+        success = self.rig.consume_from_storage(DataSpike, hits)
+        if not success:
+            print("No unencrypted Data Spike available to launch a data spike!")
+
+        total_damage = target.rig.take_hit(hits)
+        print(f"{self.name} launched {hits} hits to {target.name}.\n"
+              f"Total damage = {total_damage}.")
+        return True
+
+    def scan_inventory(self):
+
+        if not self.__inventory:
+            print("Inventory is empty.")
+            return
+
+        print("Inventory contents:")
+        for asset in self.__inventory:
+            print(f" - {asset}")
+
     trace = property(get_trace, increase_trace)
 
 
 p1 = Hacker()
-print(p1)
-rig = p1.get_rig()
-while p1.trace <= MAX_TRACE:
-    print(p1)
-    p1.rig.generate_asset()
-    p1.rig.take_hit()
-    p1.decrypt_asset(DataSpike)
-    p1.encrypt_asset(DataSpike)
-    p1.trace = 1
+p2 = Hacker()
+
+p1.get_rig()
+p2.get_rig()
+index = 0
+while index < 8:
+    p2.rig.generate_asset()
+    index += 1
+p2.scan_inventory()
+p2.get_asset(HardwarePatch, amount=1)
+p2.scan_inventory()
+p2.upgrade_rig()
+print(p2.rig)
+p1.launch_data_spike(p2, hits=2)
+print(p2.rig)
