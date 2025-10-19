@@ -9,7 +9,7 @@ This is my own work as defined by the University's Academic Misconduct Policy.
 import random
 from Asset import Asset, DataSpike, CryptoToken, RemovableDrive, SecurityChip, HardwarePatch
 
-MAX_DMG = 2
+MAX_DMG = 2.0
 
 class Rig:
     def __init__(self):
@@ -17,7 +17,7 @@ class Rig:
             ["Stonewall Server", "Glitchwitch", "Lambda Core", "Nova Core",
              "Cache Cat"]
         )
-        self.__damage = 0
+        self.__damage = 0.0
         self.__broken = False
         data_spike = DataSpike()
         data_spike.quantity = 2
@@ -32,11 +32,6 @@ class Rig:
                 f"Broken: {self.__broken}\n"
                 f"Storage: {storage_str}\n"
                 f"Upgrade: {self.__upgrade}\n")
-
-    def broken(self):
-        if self.__damage >= MAX_DMG:
-            self.__broken = True
-        return self.__broken
 
     def get_capacity(self):
         return self.__base_capacity + self.__upgrade
@@ -66,8 +61,12 @@ class Rig:
             return self.__damage
 
     def set_damage(self, damage):
+        if damage < 0:
+            damage = 0.0
+        if damage > MAX_DMG:
+            damage = MAX_DMG
         self.__damage = damage
-        self.__broken = self.__damage >= MAX_DMG
+        self.__broken = (self.__damage >= MAX_DMG)
 
     def get_storage(self):
         return self.__storage
@@ -86,18 +85,33 @@ class Rig:
             return None
 
     def repair(self):
-        if self.consume_from_storage(CryptoToken):
-            if self.dmg > 0:
-                print("Repair complete!")
-                self.dmg = 0
-                self.__broken = False
-                return True
-            else:
-                print("No repair needed - you have no damage!")
-                return False
-        return (
-            print("Cannot repair - you need a CryptoToken in storage!"),
-            False)
+        if self.dmg <= 0:
+            print("Rig has no damage to repair!")
+            return False
+        self.dmg = 0
+        self.__broken = False
+        print("Rig repaired!")
+        return True
+
+    def upgrade(self):
+        self.__upgrade += 1
+        print(f"Rig upgraded! New capacity: {self.capacity}")
+        return True
+
+    def take_hit(self, hits=1):
+
+        # Calculate per-hit damage floored at 0.25
+        per_hit = max(1.0 - 0.25 * self.__upgrade, 0.25)
+
+        # total incoming before clamping
+        incoming = per_hit * hits
+        old_total = self.dmg
+        self.dmg = old_total + incoming
+        effective = self.dmg - old_total
+        print(f"Rig took {effective:.2f} damage!"
+              f"({hits} hits at {per_hit:.2f}/hit per hit, upgrade={self.__upgrade})."
+              f" Total damage is now: {self.dmg:.2f}.")
+        return effective
 
     dmg = property(get_damage, set_damage)
     capacity = property(get_capacity)

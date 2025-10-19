@@ -6,9 +6,9 @@ ID: 110441860
 Username: walsq001
 This is my own work as defined by the University's Academic Misconduct Policy.
 """
-from Asset import CryptoToken, DataSpike, SecurityChip
-from Rig import Rig
 import random
+from Rig import Rig
+from Asset import Asset, DataSpike, CryptoToken, RemovableDrive, SecurityChip, HardwarePatch
 
 # Variable and constant declarations
 
@@ -86,12 +86,10 @@ class Hacker:
             capacity=self.rig.capacity
         )
 
-
     def get_asset(self, asset_type, amount=1):
         if not self.rig:
             print("No rig available!")
             return False
-
         return self._transfer(
             source=self.rig.storage,
             dest=self.__inventory,
@@ -207,6 +205,27 @@ class Hacker:
                 return chip, "storage"
         return None, None
 
+    def upgrade_rig(self):
+        if not self.rig:
+            print("No rig available to upgrade!")
+            return False
+
+        if not self.consume_asset(HardwarePatch):
+            print("No Hardware patch available to upgrade!")
+            return False
+
+        return self.rig.upgrade()
+
+    def repair_rig(self):
+        if not self.rig:
+            print("No rig available to repair!")
+            return False
+
+        if not self.consume_asset(CryptoToken):
+            print("No CryptoToken available to repair!")
+            return False
+
+        return self.rig.repair()
 
     trace = property(get_trace, increase_trace)
 
@@ -217,8 +236,7 @@ rig = p1.get_rig()
 while p1.trace <= MAX_TRACE:
     print(p1)
     p1.rig.generate_asset()
-    p1.rig.dmg = 3
-    p1.rig.repair()
+    p1.rig.take_hit()
     p1.decrypt_asset(DataSpike)
     p1.encrypt_asset(DataSpike)
     p1.trace = 1
