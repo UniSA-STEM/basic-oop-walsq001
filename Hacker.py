@@ -43,6 +43,36 @@ class Hacker:
                 f"Trace Level: {self.__trace_level}\n"
                 f"{rig_str}")
 
+    def _transfer(self, source, dest, asset_type, amount, capacity=None):
+        for asset in source:
+            if isinstance(asset, asset_type):
+                if asset.quantity < amount:
+                    print("Not enough quantity to transfer!")
+                    return False
+
+                asset.consume(amount)
+                if asset.quantity == 0:
+                    source.remove(asset)
+
+                if capacity is not None:
+                    current_total = sum(a.quantity for a in dest)
+                    if current_total + amount > capacity:
+                        print("Destination storage full!")
+                        return False
+
+                for d in dest:
+                    if isinstance(d, asset_type):
+                        d.quantity += amount
+                        return True
+
+                new_asset = asset_type()
+                new_asset.quantity = amount
+                dest.append(new_asset)
+                return True
+        print(f"No {asset_type.__name__} available to transfer.")
+        return False
+
+
     def __actions_blocked(self):
         self.__exposed = True
         return self.__trace_level
@@ -76,42 +106,27 @@ class Hacker:
                 return True
         return False
 
-    def move_to_rig(self,asset_type, amount=1):
-        for asset in self.__inventory:
-            if isinstance(asset, asset_type):
-                if asset.quantity >= amount:
-                    new_asset = asset_type()
-                    new_asset.quantity = amount
-                    if self.rig.add_to_storage(new_asset):
-                        asset.consume(amount)
-                        if asset.quantity == 0:
-                            self.__inventory.remove(asset)
-                        return True
-                else:
-                    print("Not enough quantity in inventory!")
-                    return False
+    def move_to_rig(self, asset_type, amount=1):
+        if not self.rig:
+            print("No rig available!")
+            return False
+        return self._transfer(self.__inventory, self.rig.storage, asset_type, amount, capacity=self.rig.capacity)
+
         print(f"No {asset_type.__name__} in inventory!")
         return False
 
     def move_from_rig(self, asset_type, amount=1):
-        if self.rig.consume_from_storage(asset_type, amount):
-            new_asset = asset_type()
-            new_asset.quantity = amount
-            for inv in self.__inventory:
-                if isinstance(inv, asset_type):
-                    inv.quantity += amount
-                    return True
-            self.__inventory.append(new_asset)
-            return True
-        print(f"No {asset_type.__name__} in inventory!")
-        return False
+        if not self.rig:
+            print("No rig available!")
+            return False
+        return self._transfer(self.rig._Rig__storage, self.__inventory, asset_type, amount)
 
     trace = property(get_trace, set_trace)
 p1 = Hacker()
 rig = p1.get_rig()
 while p1.trace <= MAX_TRACE:
     print(p1)
-    p1.move_from_rig(DataSpike, 1)
+    p1.move_from_rig(DataSpike, 2)
     print(p1)
     p1.move_to_rig(DataSpike, 1)
     p1.trace = 1

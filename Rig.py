@@ -20,7 +20,7 @@ class Rig:
         self.__base_capacity = 3
 
     def __str__(self):
-        storage_str = "\n".join(f"{str(item)}" for item in self.__storage)
+        storage_str = "\n".join(f"{str(item)}" for item in self.__storage) or "Empty"
         return (f"Rig Name: {self.__name}\n"
                 f"Damage: {self.__damage}\n"
                 f"Broken: {self.__broken}\n"
@@ -30,24 +30,22 @@ class Rig:
     def broken(self):
         if self.__damage >= MAX_DMG:
             self.__broken = True
-            return self.__broken
-        return None
+        return self.__broken
 
     def get_capacity(self):
-        return self.__base_capacity
+        return self.__base_capacity + self.__upgrade
 
     def add_to_storage(self, asset: Asset):
         current_total = sum(a.quantity for a in self.__storage)
-        if current_total + asset.quantity <= self.get_capacity():
-            for stored in self.__storage:
-                if type(stored) is type(asset):
-                    stored.quantity += asset.quantity
-                    return True
-            self.__storage.append(asset)
-            return True
-        else:
+        if current_total + asset.quantity > self.capacity:
             print("Storage is full, cannot add asset!")
             return False
+        for stored in self.__storage:
+            if isinstance(stored, type(asset)):
+                stored.quantity += asset.quantity
+                return True
+        self.__storage.append(asset)
+        return True
 
     def consume_from_storage(self, asset_type, amount=1):
         for asset in self.__storage:
@@ -64,4 +62,10 @@ class Rig:
     def set_damage(self, damage):
         self.__damage = damage
 
+    def get_storage(self):
+        return self.__storage
+
+
     dmg = property(get_damage, set_damage)
+    capacity = property(get_capacity)
+    storage = property(get_storage)
