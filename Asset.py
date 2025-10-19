@@ -42,7 +42,7 @@ class Asset:
             self.__quantity -= amount
         else:
             self.__quantity = 0
-        return self.__quantity > 0
+        return self.__quantity
 
     quantity = property(get_quantity, set_quantity)
     encrypt = property(get_encrypt, set_encrypt)

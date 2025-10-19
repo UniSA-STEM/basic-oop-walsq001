@@ -25,7 +25,7 @@ class Rig:
                 f"Damage: {self.__damage}\n"
                 f"Broken: {self.__broken}\n"
                 f"Storage: {storage_str}\n"
-                f"Upgrade: {self.__upgrade}")
+                f"Upgrade: {self.__upgrade}\n")
 
     def broken(self):
         if self.__damage >= MAX_DMG:

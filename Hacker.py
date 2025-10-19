@@ -37,13 +37,15 @@ class Hacker:
 
     def __str__(self):
         inventory_str = "\n".join(f"{str(item)}" for item in self.__inventory)
+        rig_str = str(self.rig) if self.rig else "No rig"
         return (f"Name: {self.__name}\n"
                 f"Inventory: {inventory_str}\n"
                 f"Trace Level: {self.__trace_level}\n"
-                f"Exposed: {self.__exposed}")
+                f"{rig_str}")
 
     def __actions_blocked(self):
         self.__exposed = True
+        return self.__trace_level
 
     def get_trace(self):
         if self.__trace_level >= MAX_TRACE:
@@ -59,7 +61,6 @@ class Hacker:
                 self.__has_rig = True
                 self.rig = Rig()
                 print("You have acquired a rig!")
-                self.__inventory.append(self.rig)
                 return self.rig
             else:
                 return print("You have tried to acquire a rig, but no token was available.")
@@ -75,12 +76,42 @@ class Hacker:
                 return True
         return False
 
+    def move_to_rig(self,asset_type, amount=1):
+        for asset in self.__inventory:
+            if isinstance(asset, asset_type):
+                if asset.quantity >= amount:
+                    new_asset = asset_type()
+                    new_asset.quantity = amount
+                    if self.rig.add_to_storage(new_asset):
+                        asset.consume(amount)
+                        if asset.quantity == 0:
+                            self.__inventory.remove(asset)
+                        return True
+                else:
+                    print("Not enough quantity in inventory!")
+                    return False
+        print(f"No {asset_type.__name__} in inventory!")
+        return False
+
+    def move_from_rig(self, asset_type, amount=1):
+        if self.rig.consume_from_storage(asset_type, amount):
+            new_asset = asset_type()
+            new_asset.quantity = amount
+            for inv in self.__inventory:
+                if isinstance(inv, asset_type):
+                    inv.quantity += amount
+                    return True
+            self.__inventory.append(new_asset)
+            return True
+        print(f"No {asset_type.__name__} in inventory!")
+        return False
+
     trace = property(get_trace, set_trace)
 p1 = Hacker()
 rig = p1.get_rig()
-if rig:
-    print("Initial rig state:")
-    print(rig)
-    spike1 = DataSpike()
-    spike1.quantity = 2
-    rig.add_to_storage(spike1)
+while p1.trace <= MAX_TRACE:
+    print(p1)
+    p1.move_from_rig(DataSpike, 1)
+    print(p1)
+    p1.move_to_rig(DataSpike, 1)
+    p1.trace = 1
