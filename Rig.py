@@ -13,7 +13,10 @@ MAX_DMG = 2
 
 class Rig:
     def __init__(self):
-        self.__name = "Rig"
+        self.__name = random.choice(
+            ["Stonewall Server", "Glitchwitch", "Lambda Core", "Nova Core",
+             "Cache Cat"]
+        )
         self.__damage = 0
         self.__broken = False
         data_spike = DataSpike()
@@ -45,7 +48,7 @@ class Rig:
             return False
         for stored in self.__storage:
             if isinstance(stored, type(asset)):
-                stored.quantity += asset.quantity
+                stored.merge_from(asset)
                 return True
         self.__storage.append(asset)
         return True
@@ -60,7 +63,7 @@ class Rig:
         return False
 
     def get_damage(self):
-            return self.__damage, self.broken()
+            return self.__damage
 
     def set_damage(self, damage):
         self.__damage = damage
@@ -76,17 +79,17 @@ class Rig:
         new_asset = chosen_asset()
 
         if self.add_to_storage(new_asset):
-            print(f"Added {new_asset} to storage!")
+            print(f"Added {type(new_asset).__name__} to storage!")
             return new_asset
         else:
-            print(f"Failed to add {new_asset} to storage! Storage full!")
+            print(f"Failed to add {type(new_asset).__name__} to storage! Storage full!")
             return None
 
     def repair(self):
         if self.consume_from_storage(CryptoToken):
-            if self.__damage > 0:
+            if self.dmg > 0:
                 print("Repair complete!")
-                self.__damage = 0
+                self.dmg = 0
                 self.__broken = False
                 return True
             else:
@@ -95,7 +98,6 @@ class Rig:
         return (
             print("Cannot repair - you need a CryptoToken in storage!"),
             False)
-
 
     dmg = property(get_damage, set_damage)
     capacity = property(get_capacity)
