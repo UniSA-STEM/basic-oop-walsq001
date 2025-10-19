@@ -109,8 +109,8 @@ class Rig:
         self.dmg = old_total + incoming
         effective = self.dmg - old_total
         print(f"Rig took {effective:.2f} damage!"
-              f"({hits} hits at {per_hit:.2f}/hit per hit, upgrade={self.__upgrade})."
-              f" Total damage is now: {self.dmg:.2f}.")
+              f"({hits} hits at {per_hit:.2f}/hit per hit, upgrade={self.__upgrade}).\n"
+              f"Total damage is now: {self.dmg:.2f}.")
         return effective
 
     dmg = property(get_damage, set_damage)
