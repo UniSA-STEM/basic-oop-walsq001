@@ -14,7 +14,7 @@ MAX_DMG = 2
 class Rig:
     def __init__(self):
         self.__name = "Rig"
-        self.__damage = 1
+        self.__damage = 0
         self.__broken = False
         data_spike = DataSpike()
         data_spike.quantity = 2
@@ -64,6 +64,7 @@ class Rig:
 
     def set_damage(self, damage):
         self.__damage = damage
+        self.__broken = self.__damage >= MAX_DMG
 
     def get_storage(self):
         return self.__storage

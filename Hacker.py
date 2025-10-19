@@ -124,5 +124,6 @@ rig = p1.get_rig()
 while p1.trace <= MAX_TRACE:
     print(p1)
     p1.rig.generate_asset()
+    p1.rig.dmg = 3
     p1.rig.repair()
     p1.trace = 1
