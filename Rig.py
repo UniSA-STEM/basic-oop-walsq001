@@ -14,13 +14,13 @@ MAX_DMG = 2
 class Rig:
     def __init__(self):
         self.__name = "Rig"
-        self.__damage = 0
+        self.__damage = 1
         self.__broken = False
         data_spike = DataSpike()
         data_spike.quantity = 2
         self.__storage: list[Asset] = [data_spike]
         self.__upgrade = 0
-        self.__base_capacity = 3
+        self.__base_capacity = 8
 
     def __str__(self):
         storage_str = "\n".join(f"{str(item)}" for item in self.__storage) or "Empty"
@@ -80,6 +80,21 @@ class Rig:
         else:
             print(f"Failed to add {new_asset} to storage! Storage full!")
             return None
+
+    def repair(self):
+        if self.consume_from_storage(CryptoToken):
+            if self.__damage > 0:
+                print("Repair complete!")
+                self.__damage = 0
+                self.__broken = False
+                return True
+            else:
+                print("No repair needed - you have no damage!")
+                return False
+        return (
+            print("Cannot repair - you need a CryptoToken in storage!"),
+            False)
+
 
     dmg = property(get_damage, set_damage)
     capacity = property(get_capacity)

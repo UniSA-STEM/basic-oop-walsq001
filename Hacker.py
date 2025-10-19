@@ -6,7 +6,7 @@ ID: 110441860
 Username: walsq001
 This is my own work as defined by the University's Academic Misconduct Policy.
 """
-from Asset import CryptoToken, DataSpike
+from Asset import CryptoToken
 from Rig import Rig
 import random
 
@@ -55,7 +55,7 @@ class Hacker:
                     source.remove(asset)
 
                 if capacity is not None:
-                    current_total = self.rig.get_capacity
+                    current_total = self.rig.capacity
                     if current_total + amount > capacity:
                         print("Destination storage full!")
                         return False
@@ -124,4 +124,5 @@ rig = p1.get_rig()
 while p1.trace <= MAX_TRACE:
     print(p1)
     p1.rig.generate_asset()
+    p1.rig.repair()
     p1.trace = 1
