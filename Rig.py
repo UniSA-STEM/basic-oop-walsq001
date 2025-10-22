@@ -12,34 +12,67 @@ from Asset import Asset, DataSpike, CryptoToken, RemovableDrive, SecurityChip, H
 MAX_DMG = 2.0
 
 class Rig:
-    def __init__(self):
+    """
+    Represents a hacker's rig.
+    Stores assets, can be upgraded, repaired, and attacked.
+    """
+    def __init__(self, damage=0.0, upgrade=0, base_capacity=5):
+        # Each rig starts with 2 DataSpikes and 1 RemovableDrive.
+        # Damage starts at 0, broken = False, upgrade level = 0.
         self.__name = random.choice(
             ["Stonewall Server", "Glitchwitch", "Lambda Core", "Nova Core",
              "Cache Cat"]
         )
-        self.__damage = 0.0
+        self.__damage = damage
         self.__broken = False
-        data_spike = DataSpike()
-        data_spike.quantity = 2
-        self.__storage: list[Asset] = [data_spike]
-        self.__upgrade = 0
-        self.__base_capacity = 8
+        ds = DataSpike()
+        rd = RemovableDrive()
+        ds.set_unencrypted(2)
+        self.__storage = [ds, rd]
+        self.__upgrade = upgrade
+        self.__base_capacity = base_capacity
 
-    def __str__(self):
-        storage_str = "\n".join(f"{str(item)}" for item in self.__storage) or "Empty"
-        return (f"Rig Name: {self.__name}\n"
-                f"Damage: {self.__damage}\n"
-                f"Broken: {self.__broken}\n"
-                f"Storage: {storage_str}\n"
-                f"Upgrade: {self.__upgrade}\n")
-
+    # --- Properties ---
+    def get_dmg(self):
+        return self.__damage
+    def set_dmg(self, dmg):
+        if dmg > MAX_DMG:
+            dmg = MAX_DMG
+        self.__damage = dmg
+        self.__broken = self.__damage >= MAX_DMG
+    def get_broken(self):
+        return self.__broken
     def get_capacity(self):
         return self.__base_capacity + self.__upgrade
+    def get_storage(self):
+        return self.__storage
+    def get_name(self):
+        return self.__name
+    def get_condition(self):
+        if self.__broken:
+            return f"Broken (Level {self.__upgrade})"
+        elif self.__damage == 0:
+            return f"Pristine (Level {self.__upgrade})"
+        else:
+            return f"Damaged {self.__damage} (Level {self.__upgrade})"
+    broken = property(get_broken)
+    storage = property(get_storage)
+    capacity = property(get_capacity)
+    name = property(get_name)
+    dmg = property(get_dmg, set_dmg)
 
-    def add_to_storage(self, asset: Asset):
-        current_total = sum(a.quantity for a in self.__storage)
-        if current_total + asset.quantity > self.capacity:
-            print("Storage is full, cannot add asset!")
+    # --- Methods ---
+    def add_to_storage(self, asset):
+        """
+        Attempt to add an asset to this rig.
+        - Rejects if not an asset or if quantity <= 0.
+        - Rejects if capacity would be exceeded.
+        - If an asset of the same type exists, merge into it.
+        - Otherwise, append as a new entry.
+        """
+        if not isinstance(asset, Asset) or asset.quantity() <= 0:
+            return False
+        if sum(a.quantity() for a in self.__storage) + asset.quantity() > self.capacity:
             return False
         for stored in self.__storage:
             if isinstance(stored, type(asset)):
@@ -49,70 +82,72 @@ class Rig:
         return True
 
     def consume_from_storage(self, asset_type, amount=1):
-        for asset in self.__storage:
-            if isinstance(asset, asset_type):
-                still_has = asset.consume(amount)
-                if not still_has:
-                    self.__storage.remove(asset)
-                return True
-        return False
+        """
+        Consume an amount of the first matching asset_type in storage.
+        - Return 0 if no asset found.
+        - Removes the asset from storage if it becomes empty.
+        """
+        asset = next((a for a in self.__storage if isinstance(a, asset_type)), None)
+        if not asset:
+            return 0
+        consumed = asset.consume(amount)
+        if asset.quantity() == 0:
+            self.__storage.remove(asset)
+        return consumed
 
-    def get_damage(self):
-            return self.__damage
-
-    def set_damage(self, damage):
-        if damage < 0:
-            damage = 0.0
-        if damage > MAX_DMG:
-            damage = MAX_DMG
-        self.__damage = damage
-        self.__broken = (self.__damage >= MAX_DMG)
-
-    def get_storage(self):
-        return self.__storage
-
-    def generate_asset(self):
-        asset_classes = [HardwarePatch, SecurityChip, DataSpike, RemovableDrive, CryptoToken]
-        chosen_asset = random.choice(asset_classes)
-
-        new_asset = chosen_asset()
-
+    def generate(self):
+        """
+        Randomly create a new single-unit asset
+        and attempt to add it to storage.
+        """
+        asset_classes = [
+            CryptoToken,
+            RemovableDrive,
+            SecurityChip,
+            HardwarePatch,
+            DataSpike,
+        ]
+        chosen = random.choice(asset_classes)
+        new_asset = chosen()
         if self.add_to_storage(new_asset):
-            print(f"Added {type(new_asset).__name__} to storage!")
             return new_asset
         else:
-            print(f"Failed to add {type(new_asset).__name__} to storage! Storage full!")
             return None
 
     def repair(self):
+        # Repairs if damaged.
         if self.dmg <= 0:
-            print("Rig has no damage to repair!")
+            print("No repair is needed!")
             return False
         self.dmg = 0
         self.__broken = False
-        print("Rig repaired!")
         return True
 
     def upgrade(self):
+        # Increases upgrade level, expands capacity
         self.__upgrade += 1
         print(f"Rig upgraded! New capacity: {self.capacity}")
         return True
 
-    def take_hit(self, hits=1):
-
+    def take_hit(self, hits=1, attacker=None):
         # Calculate per-hit damage floored at 0.25
         per_hit = max(1.0 - 0.25 * self.__upgrade, 0.25)
 
         # total incoming before clamping
         incoming = per_hit * hits
-        old_total = self.dmg
-        self.dmg = old_total + incoming
-        effective = self.dmg - old_total
-        print(f"Rig took {effective:.2f} damage!"
-              f"({hits} hits at {per_hit:.2f}/hit per hit, upgrade={self.__upgrade}).\n"
-              f"Total damage is now: {self.dmg:.2f}.")
-        return effective
+        new_total = self.dmg + incoming
+        self.dmg = new_total
+        self.__broken = self.dmg >= MAX_DMG
+        print(f"{attacker} launched a DataSpike on {self.name}, causing {incoming} damage.\n"
+              f"{self.dmg} damage accumulated.\n")
+        return True
 
-    dmg = property(get_damage, set_damage)
-    capacity = property(get_capacity)
-    storage = property(get_storage)
+    def __str__(self):
+        """
+        Returns a string representation of the rig.
+        """
+        storage_str = "\n".join(f"{str(item)}" for item in self.__storage) or "Empty"
+        return (f"Rig Name: {self.__name}\n"
+                f"Condition: {self.get_condition()}\n"
+                f"---Storage---\n"
+                f"{storage_str}\n")
